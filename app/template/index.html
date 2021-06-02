@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ZH-CN">
+<head>
+    <meta charset="utf-8">
+    <title>打卡签到</title>
+</head>
+{% load static %}
+<link rel="stylesheet" href="/static/layui/css/layui.css">
+<script type="application/javascript" src="http://www.chewubang.net/static/jquery/jquery-3.2.1.min.js"></script>
+
+<script type="application/javascript" src="/static/layui/layui.all.js"></script>
+
+
+<style>
+</style>
+<body>
+<div class="layui-container">
+
+    <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+        <ul class="layui-tab-title">
+            <li class="layui-this"><a href="/">签到</a></li>
+            <li><a href="/register">注册学生</a></li>
+            <li class=""><a href="/search">签到查询</a></li>
+            <li><a href="/admin/">管理数据库</a></li>
+        </ul>
+        <div class="layui-tab-content"></div>
+    </div>
+
+
+    <div style="text-align: center;border: 1px solid;width: 500px;height: 500px;padding: 10px;float: left">
+        <img src="" id="predict-img" style="width: 480px;height: 480px" alt="">
+    </div>
+
+
+    <form class="layui-form" action="javascript:void(0)" method="post" id="check-form" style="float: right">
+        <div class="layui-form-item">
+            <label class="layui-form-label">选择图片</label>
+            <div class="layui-input-inline">
+                <input type="file" name="img" id="predict-img" onchange=onUpload1(this.files[0])>
+                <input type="hidden" name="img" id="input_img">
+            </div>
+
+        </div>
+
+
+        <button class="layui-btn getmediaDevices " id="work" style="margin-left: 120px;">开始签到</button>
+
+
+    </form>
+
+
+    <div class="layui-code" style="margin-top: 550px;width: 100%; " id="logs">
+
+    </div>
+
+</div>
+<script>
+
+
+
+    function onUpload1(file) {
+        var fr = new FileReader();
+
+        fr.onload = function (e) {
+            var result = e.target.result;
+            $("#predict-img").attr("src", result);
+            $("#input_img").val(result)
+        }
+        fr.readAsDataURL(file);  // 将文件读取为Data URL
+    }
+
+
+    function upload() {
+        if ($("#input_img").val()) {
+            $("#logs").html("")
+            layer.load(3)
+            $.ajax({
+                "type": "POST",
+                "url": "/",
+                "data": $("#check-form").serializeArray(),
+                'dataType': 'json',
+                beforeSend: function () {
+                },
+                success: function (result) {
+                    layer.closeAll()
+                    if (result.code === 200) {
+                        layer.msg(result.status+"\n "+result.data)
+                         // $("#logs").append($(`<img style='width: 100%' src='data:image/jpeg;base64,${result.img}'/>`))
+
+layui.table.render({
+    elem: '#logs'
+    ,cols: [[ //标题栏
+
+      {field: 'username', title: '用户名', width: 120}
+      ,{field: 'date', title: '时间', minWidth: 150}
+      ,{field: 'status', title: '状态', minWidth: 160}
+
+    ]]
+    ,data:result.user_check_data
+    //,skin: 'line' //表格风格
+    ,even: true
+    //,page: true //是否显示分页
+    //,limits: [5, 7, 10]
+    //,limit: 5 //每页默认显示的数量
+  });
+
+
+                    } else {
+                        console.log(result.msg)
+                    }
+                }, error: function () {
+                    console.log("服务器错误 停止签到");
+                }
+            });
+
+        } else {
+            console.log("请先选择图片");
+        }
+    }
+
+    $("#work").click(upload);
+
+
+</script>
+{#<script type="application/javascript" src="/static/index_face.js"></script>#}
+{#<script type="application/javascript" src="/static/opencv.js"></script>#}
+
+
+</body>
+</html>

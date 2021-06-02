@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ZH-CN">
+<head>
+    <meta charset="utf-8">
+    <title>web RTC 测试</title>
+</head>
+{% load static %}
+<link rel="stylesheet" href="/static/layui/css/layui.css">
+<script src="http://www.chewubang.net/static/jquery/jquery-3.2.1.min.js"></script>
+
+<script src="/static/layui/layui.all.js"></script>
+
+
+<style>
+</style>
+<body>
+<div class="layui-container">
+
+    <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+        <ul class="layui-tab-title">
+            <li><a href="/">签到</a></li>
+
+            <li class="layui-this"><a href="/register">注册学生</a></li>
+            <li class=""><a href="/search">签到查询</a></li>
+            <li><a href="/admin">管理数据库</a></li>
+        </ul>
+        <div class="layui-tab-content"></div>
+    </div>
+    <form class="layui-form" action="javascript:void(0)" method="post" id="register-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">正面脸部</label>
+
+
+
+            <div class="layui-input-inline">
+                        <div class="layui-upload">
+                    <button type="button" class="layui-btn"  onclick="$('#face1-input').click()">上传图片</button>
+                    <input class="layui-upload-file" onchange='onUpload1(this.files[0],1)' type="file" accept=""
+                           id="face1-input" name="file">
+
+                </div>
+
+
+                <input type="hidden" name="face1" id="face1">
+            </div>
+
+
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">左侧脸部</label>
+
+
+
+            <div class="layui-input-inline">
+                        <div class="layui-upload">
+                    <button type="button" class="layui-btn" onclick="$('#face2-input').click()">上传图片</button>
+                    <input class="layui-upload-file" onchange='onUpload1(this.files[0],2)' type="file" accept=""
+                           id="face2-input" name="file">
+
+                </div>
+
+
+                <input type="hidden" name="face2" id="face2">
+            </div>
+
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">右侧脸部</label>
+            <div class="layui-input-inline">
+
+                <div class="layui-upload">
+                    <button type="button" class="layui-btn"  onclick="$('#face3-input').click()">上传图片</button>
+                    <input class="layui-upload-file" onchange='onUpload1(this.files[0],3)' type="file" accept=""
+                           id="face3-input" name="file">
+
+                </div>
+
+
+                <input type="hidden" name="face3" id="face3">
+            </div>
+
+        </div>
+
+        <br>
+        <div style="height: 100px;width: 300px;margin-left: 80px">
+            <img src="#" id="predict-img1"
+                 style="height: 80px;width: 80px;border: dimgray solid 1px;display: block;float: left"
+                 alt="">
+            <img src="#" id="predict-img2"
+                 style="height: 80px;width: 80px;border: dimgray solid 1px;display: block;float: left"
+                 alt="">
+            <img src="#" id="predict-img3"
+                 style="height: 80px;width: 80px;border: dimgray solid 1px;display: block;float: left"
+                 alt="">
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">姓名</label>
+            <div class="layui-input-inline">
+                <input type="text" name="username" lay-verify="required" class="layui-input" required="required">
+            </div>
+
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label"> 密码</label>
+            <div class="layui-input-inline">
+                <input type="password" name="password" lay-verify="required" class="layui-input" required="required">
+            </div>
+
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">班级</label>
+            <div class="layui-input-inline">
+                <input type="text" name="clss" lay-verify="required" class="layui-input" required="required">
+            </div>
+
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">专业</label>
+            <div class="layui-input-inline">
+                <input type="text" name="pro" lay-verify="required" class="layui-input" required="required">
+            </div>
+
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">学号</label>
+            <div class="layui-input-inline">
+                <input type="text" name="snum" lay-verify="required" class="layui-input" required="required">
+            </div>
+
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">学院</label>
+            <div class="layui-input-inline">
+                <input type="text" name="college" lay-verify="required" class="layui-input" required="required">
+            </div>
+
+        </div>
+
+
+        <br>
+        <button id="getmediaDevices" class="layui-btn" type="button" style="margin-left: 200px">提交注册</button>
+    </form>
+
+    <script type="text/html" id="face">
+        <div style="text-align: center;">
+            <video width="480" height="480" id="video" style="display:none"></video>
+            <canvas width="480" height="480" id="outputCanvas" style="margin: 0 auto"></canvas>
+        </div>
+    </script>
+
+</div>
+<script>
+    var g_stream;
+    layui.form.render();
+    layer = layui.layer;
+
+    function onUpload1(file, method = 1) {
+        var fr = new FileReader();
+        fr.readAsDataURL(file);  // 将文件读取为Data URL
+
+        fr.onload = function (e) {
+            var result = e.target.result;
+            $("#predict-img" + method).attr("src", result);
+            $("#face" + method).val(result);
+        }
+    }
+
+    $("#getmediaDevices").click(upload);
+
+
+    function upload() {
+        layer.open({type: 3})
+        $.ajax({
+            "type": "POST",
+            "url": "/register",
+            "data": $("#register-form").serializeArray(),
+            'dataType': 'json',
+
+            success: function (result) {
+                if (result.code === 200) {
+                    layer.closeAll()
+                    layer.alert(result.msg)
+                    {#history.go(0)#}
+
+                } else {
+                    layer.alert(result.msg)
+                }
+
+            }
+        });
+    }
+</script>
+{#<script type="application/javascript" src="/static/face.js"></script>#}
+{#<script type="application/javascript" src="/static/opencv.js"></script>#}
+{##}
+
+</body>
+</html>

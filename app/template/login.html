@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="ZH-CN">
+<head>
+    <meta charset="utf-8">
+    <title>本月签到记录查询</title>
+</head>
+{% load static %}
+<link rel="stylesheet" href="/static/layui/css/layui.css">
+<script src="http://www.chewubang.net/static/jquery/jquery-3.2.1.min.js"></script>
+
+<script src="/static/layui/layui.all.js"></script>
+<script src="/static/echarts.min.js"></script>
+
+
+<style>
+</style>
+<body>
+<div class="layui-container">
+
+    <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+        <ul class="layui-tab-title">
+            <li class=""><a href="/">签到</a></li>
+            <li><a href="/register">注册学生</a></li>
+            <li class="layui-this"><a href="/search">签到查询</a></li>
+            <li><a href="/admin/">管理数据库</a></li>
+        </ul>
+        <div class="layui-tab-content"></div>
+    </div>
+    <form class="layui-form" action="/login/" method="post" id="check-form">
+        <h3>您所要查看的页面需要登录才行</h3>
+        <br>
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户名</label>
+            <div class="layui-input-inline">
+                {{ form.username }}
+            </div>
+        </div>
+        {% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}">
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">密码</label>
+                <div class="layui-input-inline">
+                    {{ form.password }}
+                </div>
+            </div>
+        </div>
+
+
+        <button id="getmediaDevices" class="layui-btn" style="margin-left: 120px;">登录</button>
+    </form>
+
+
+</div>
+</body>
+</html>

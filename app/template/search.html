@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ZH-CN">
+<head>
+    <meta charset="utf-8">
+    <title>本月签到记录查询</title>
+</head>
+{% load static %}
+<link rel="stylesheet" href="/static/layui/css/layui.css">
+<script src="http://www.chewubang.net/static/jquery/jquery-3.2.1.min.js"></script>
+
+<script src="/static/layui/layui.all.js"></script>
+<script src="/static/echarts.min.js"></script>
+
+
+<style>
+</style>
+<body>
+<div class="layui-container">
+
+    <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+        <ul class="layui-tab-title">
+            <li class=""><a href="/">签到</a></li>
+            <li><a href="/register">注册学生</a></li>
+            <li class="layui-this"><a href="/search">签到查询</a></li>
+            <li><a href="/admin/">管理数据库</a></li>
+            {% if user.is_authenticated %}
+
+
+                <li class="right" style="float: right">
+
+                    <a href="/logout/">退出</a>
+                </li>
+                <li class="right" style="float: right">
+
+                    <a>{{ user.username }}</a>
+                </li>
+            {% else %}
+            {% endif %}
+        </ul>
+        <div class="layui-tab-content"></div>
+    </div>
+    <form class="layui-form" action="javascript:void(0)" method="post" id="check-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户名</label>
+            <div class="layui-input-inline">
+                <input type="text" name="username" id="username" class="layui-input">
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">日期范围</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="test6" name="date" placeholder=" - ">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">学院</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" name="college">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">学号</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" name="snum">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">专业</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" name="pro">
+                </div>
+            </div>
+        </div>
+       <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">打卡状态</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" name="status">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">班级</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" name="clss">
+                </div>
+            </div>
+        </div>
+
+
+        <br>
+        <button id="getmediaDevices" class="layui-btn" style="margin-left: 120px;">查询</button>
+    </form>
+    <div id="charts" style="margin-top: 25px;width: 100%;height: 300px"></div>
+
+    <div id="table" style="margin-top: 10px">
+
+
+    </div>
+    <br>
+    <br>
+</div>
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+
+    </div>
+</script>
+<script>
+    var g_stream;
+    var charts = echarts.init(document.getElementById('charts'));
+    layui.laydate.render({
+        elem: '#test6'
+        , range: true
+    });
+
+    function onUpload1(file) {
+        var fr = new FileReader();
+        fr.readAsDataURL(file);  // 将文件读取为Data URL
+
+        fr.onload = function (e) {
+            var result = e.target.result;
+            $("#predict-img").attr("src", result);
+            $("#input_img").val(result)
+        }
+    }
+
+    $("#getmediaDevices").click(upload);
+
+
+    function upload() {
+        layer.open({type: 3})
+
+        $.ajax({
+            "type": "POST",
+            "url": "/search",
+            "data": $("#check-form").serializeArray(),
+            'dataType': 'json',
+            beforeSend: function () {
+            },
+            success: function (result) {
+                layer.closeAll()
+                if (result.code === 200) {
+                    layui.table.render({
+                        elem: '#table', toolbar: '#toolbarDemo',
+                        cols: [[ //标题栏
+
+                            {field: 'username', title: '用户名', width: 120}
+                            , {field: 'time', title: '打卡时间', minWidth: 150}
+                            , {field: 'status', title: '打卡状态', minWidth: 160}
+                            , {field: 'pro', title: '专业', width: 120}
+                            , {field: 'clss', title: '班级', width: 120}
+
+                            , {field: 'snum', title: '学号', minWidth: 150}
+                            , {field: 'college', title: '学院', minWidth: 160}
+
+                        ]],
+                        data: result.data.detail,
+                        defaultToolbar: ['filter', 'exports', 'print',]
+                    })
+
+                    var option = {
+                        title: {
+                            text: '出勤率',
+
+                            left: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: '{a} <br/>{b} : {c} ({d}%)'
+                        },
+                        legend: {
+                            left: 'center',
+                            top: 'bottom',
+                            data: ['迟到', '早退', '出勤']
+                        },
+                        toolbox: {
+                            show: true,
+                            feature: {
+                                mark: {show: true},
+                                dataView: {show: true, readOnly: false},
+                                magicType: {
+                                    show: true,
+                                    type: ['pie', 'funnel']
+                                },
+                                restore: {show: true},
+                                saveAsImage: {show: true}
+                            }
+                        },
+                        series: [
+                            result.data.user_data,
+                        ]
+                    };
+
+                    charts.setOption(option)
+                } else {
+                    layer.msg(result.msg)
+                }
+            }
+        });
+
+    }
+</script>
+</body>
+</html>
